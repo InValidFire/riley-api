@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <title>Ember's API User Page</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="lib.js" defer></script>
+    <script src="api.js"></script>
+</head>
+
+<body>
+    <div id="wrapper">
+        <div id="content">
+            <h1>Ember's API User Page</h1>
+            <form action="http://localhost:8000/auth" method="get">
+                <label for="url">Web Address:</label>
+                <input id="url" type="text" name="me" placeholder="yourdomain.com" />
+                <p><button type="submit">Sign In</button></p>
+                <input type="hidden" name="client_id" value="http://localhost:8000/" />
+                <input type="hidden" name="redirect_uri" value="http://localhost:8000/callback/" />
+            </form>
+            <template>
+                <table>
+                    <thead>
+                        <th scope="col"></th>
+                    </thead>
+                </table>
+            </template>
+        </div>
+        <footer></footer>
+    </div>
+</body>
+
+</html>

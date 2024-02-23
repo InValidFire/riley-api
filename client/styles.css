@@ -1,0 +1,66 @@
+:root {
+    --body-background-color: #888888;
+}
+
+@media (min-width:350px) {  /* phones */
+    :root {
+        --footer-height: 10vh;
+    }
+
+    footer {
+        padding-top: 3vh;
+        padding-bottom: 3vh;
+    }
+
+    #wrapper {
+        width: 95%;
+        height: 95%;
+    }
+}
+
+@media (min-width:850px) { /* tablets */
+    :root {
+        --footer-height: 5vh;
+    }
+    
+    #wrapper {
+        width: 85%;
+        height: 90%;
+    }
+}
+
+@media (min-width:1060px) { /* computers */
+    #wrapper {
+        width: 75%;
+        height: 80%;
+        margin: 5%;
+        border: 2px solid #000
+    }
+}
+
+
+#wrapper {
+    background-color: var(--wrapper-background-color);
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    min-height: 100%; /* keeps the wrapper at least the length of the screen */
+    height: -moz-fit-content;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+}
+
+#content {
+    margin: 1%;
+}
+
+#api-key-box {
+    width:max-content;
+}
+
+body {
+    margin: 0;
+    height: 100%;
+    background-color: var(--body-background-color);
+}
