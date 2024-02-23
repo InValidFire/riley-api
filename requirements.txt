@@ -1,0 +1,6 @@
+fastapi==0.109.2
+pydantic==2.6.1
+pytz==2023.3.post1
+Requests==2.31.0
+SQLAlchemy==2.0.25
+starlette==0.37.1
