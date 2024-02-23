@@ -1,6 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException, Security, Request
 from fastapi.security import APIKeyHeader
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
+from starlette.responses import RedirectResponse
+from starlette.requests import URL
+import requests
+from urllib.parse import urlencode
 
 from lib import crud, models, schemas
 from lib.database import SessionLocal, engine
@@ -16,10 +21,14 @@ def get_db():
     finally:
         db.close()
 
+def get_client_session(request: Request, db: Session = Depends(get_db)):
+    return crud.get_client_session(db, request.client.host)
+
 if len(crud.get_all_users(next(get_db()))) == 0:
     print("No users detected, creating first admin user.")
     name = input("Username: ")
-    user = crud.create_user(next(get_db()), name)
+    url = input("URL: ")
+    user = crud.create_user(next(get_db()), name, url)
     user = crud.toggle_admin(next(get_db()), user)
     print(f"api-key: {user.api_key}")
 
@@ -130,8 +139,9 @@ def delete_guest(guest_id: int, db: Session = Depends(get_db), api_key = Depends
     db_user = crud.get_user(db, api_key)
     db_guest = get_user_guest(db, db_user, guest_id)
     crud.delete_guest(db, db_guest.id)
+    return db_guest
 
-@app.post("/me/guest/{guest_id}/ban")
+@app.post("/me/guest/{guest_id}/ban", response_model=schemas.GuestPrivate)
 def ban_guest(guest_id: int, db: Session = Depends(get_db), api_key = Depends(authenticate_user)):
     db_user = crud.get_user(db, api_key)
     db_guest = get_user_guest(db, db_user, guest_id, True) # need to see all users to potentially unban
@@ -166,3 +176,27 @@ def get_guests_public(user_name: str, db: Session = Depends(get_db)):
 def get_guest_public(user_name: str, guest_id: int, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_name(db, user_name)
     return get_user_guest(db, db_user, guest_id, False)
+
+app.mount("/client", StaticFiles(directory="client", html=True), name="client")
+
+@app.get("/auth")
+def auth(me: str, client_id: str, redirect_uri: str, session: schemas.ClientSession = Depends(get_client_session)):
+    params = {"me": me, "client_id": client_id, "redirect_uri": redirect_uri, "state": session.state}
+    return RedirectResponse("https://indielogin.com/auth?" + urlencode(params))
+
+@app.get("/callback")
+def callback(code: str, state: str, db: Session = Depends(get_db)):
+    session = crud.get_session_by_state(db, state)
+    if session is not None:
+        params = {
+            "code": code,
+            "client_id": "http://localhost:8000/",
+            "redirect_uri": "http://localhost:8000/callback/"
+        }
+        r = requests.post("https://indielogin.com/auth", data=params)
+        print(r.json())
+        if "me" in r.json():
+            crud.save_user_session(db, session.ip, r.json()['me'])
+        else:
+            return RedirectResponse("http://localhost:8000/client")
+        return r.json()

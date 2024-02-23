@@ -66,9 +66,16 @@ class UserPrivate(UserBase):
     api_key: str
     statuses: list[StatusPublic]
     guests: list[GuestPrivate]
+    url: str
 
     class Config:
         from_attributes = True
 
 class UserAdmin(UserPrivate):
     id: int
+
+class ClientSession(BaseModel):
+    user: UserPublic
+    ip: str
+    state: str
+    cookie: str
