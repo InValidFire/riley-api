@@ -17,3 +17,7 @@ The application can be deployed using `uvicorn` following the instructions here:
 
 You should use another service such as Docker or systemd to manage the process.
 A guide for deployment shall be added at a later date.
+
+## TO-DO
+- Split main.py into FastAPI Routers for more structure
+- Get OAuth and session management 100% working (almost there!)
