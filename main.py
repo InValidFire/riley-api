@@ -6,11 +6,16 @@ from starlette.responses import RedirectResponse
 from starlette.requests import URL
 import requests
 from urllib.parse import urlencode
+from dotenv import dotenv_values
 
 from lib import crud, models, schemas
 from lib.database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
+
+config = {
+    **dotenv_values(".env.")
+}
 
 app = FastAPI()
 
@@ -38,7 +43,7 @@ def authenticate_user(api_key_header: str = Security(api_key_header), db: Sessio
     if crud.get_user(db, api_key_header):
         return api_key_header
     raise HTTPException(status_code=401, detail="Unauthorized to access this resource.")
-    
+
 def authenticate_admin(api_key_header: str = Security(api_key_header), db: Session = Depends(get_db)):
     db_user = crud.get_user(db, api_key_header)
     if db_user.is_admin:
@@ -190,13 +195,13 @@ def callback(code: str, state: str, db: Session = Depends(get_db)):
     if session is not None:
         params = {
             "code": code,
-            "client_id": "http://localhost:8000/",
-            "redirect_uri": "http://localhost:8000/callback/"
+            "client_id": config.CLIENT_ID,
+            "redirect_uri": config.REDIRECT_URI,
         }
         r = requests.post("https://indielogin.com/auth", data=params)
         print(r.json())
         if "me" in r.json():
             crud.save_user_session(db, session.ip, r.json()['me'])
         else:
-            return RedirectResponse("http://localhost:8000/client")
-        return r.json()
+            return RedirectResponse(f"{config.CLIENT_ID}/client")
+        return r.json()  # testing login functionality
